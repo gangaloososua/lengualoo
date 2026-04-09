@@ -746,6 +746,9 @@
                             🎙️ Test Mic
                         </button>
                     </div>
+                    <div style="text-align: center; margin-top: 10px; padding: 8px; background: #fff3cd; border-radius: 8px; font-size: 0.9em; color: #856404;">
+                        <strong>🎤 Speak in:</strong> <span id="speakLanguageIndicator" style="font-weight: bold; color: #667eea;">Spanish</span>
+                    </div>
                     <div class="voice-status" id="voiceStatus"></div>
                 </div>
 
@@ -1439,7 +1442,9 @@
                 
                 recognition.onstart = () => {
                     isListening = true;
-                    updateVoiceStatus('🎤 Listening... Speak now! (Tap again to stop)');
+                    const targetLang = document.getElementById('targetLanguage').value;
+                    const targetName = nativeLanguageNames[targetLang] || targetLang;
+                    updateVoiceStatus(`🎤 Listening for ${targetName}... Speak now!`);
                     document.getElementById('micBtn').classList.add('listening');
                     document.getElementById('micBtn').innerHTML = '⏹️ Stop';
                     console.log('Speech recognition started with language:', recognition.lang);
@@ -2432,18 +2437,21 @@
             const targetLanguage = document.getElementById('targetLanguage').value;
             const nativeLanguage = document.getElementById('nativeLanguage').value;
             
+            // Update language indicator
+            document.getElementById('speakLanguageIndicator').textContent = nativeLanguageNames[targetLanguage] || targetLanguage;
+            
             // AI introduces the lesson in user's native language
             let greeting = '';
             if (nativeLanguage === 'Spanish') {
-                greeting = `¡Hola! Bienvenido a ${lesson.title}. Soy tu tutor de IA y te ayudaré a aprender ${nativeLanguageNames[targetLanguage]}. Empecemos con lo básico. ¿Estás listo?`;
+                greeting = `¡Hola! Bienvenido a ${lesson.title}. Soy tu tutor de IA y te ayudaré a aprender ${nativeLanguageNames[targetLanguage]}. Empecemos con lo básico. Cuando uses el micrófono, habla en ${nativeLanguageNames[targetLanguage]}, no en español. ¿Estás listo?`;
             } else if (nativeLanguage === 'French') {
-                greeting = `Bonjour! Bienvenue à ${lesson.title}. Je suis votre tuteur IA et je vais vous aider à apprendre ${nativeLanguageNames[targetLanguage]}. Commençons par les bases. Êtes-vous prêt?`;
+                greeting = `Bonjour! Bienvenue à ${lesson.title}. Je suis votre tuteur IA et je vais vous aider à apprendre ${nativeLanguageNames[targetLanguage]}. Commençons par les bases. Quand vous utilisez le microphone, parlez en ${nativeLanguageNames[targetLanguage]}, pas en français. Êtes-vous prêt?`;
             } else if (nativeLanguage === 'German') {
-                greeting = `Hallo! Willkommen zu ${lesson.title}. Ich bin dein KI-Tutor und helfe dir ${nativeLanguageNames[targetLanguage]} zu lernen. Lass uns mit den Grundlagen beginnen. Bist du bereit?`;
+                greeting = `Hallo! Willkommen zu ${lesson.title}. Ich bin dein KI-Tutor und helfe dir ${nativeLanguageNames[targetLanguage]} zu lernen. Lass uns mit den Grundlagen beginnen. Wenn du das Mikrofon benutzt, sprich ${nativeLanguageNames[targetLanguage]}, nicht Deutsch. Bist du bereit?`;
             } else if (nativeLanguage === 'Portuguese') {
-                greeting = `Olá! Bem-vindo a ${lesson.title}. Sou seu tutor de IA e vou ajudá-lo a aprender ${nativeLanguageNames[targetLanguage]}. Vamos começar com o básico. Você está pronto?`;
+                greeting = `Olá! Bem-vindo a ${lesson.title}. Sou seu tutor de IA e vou ajudá-lo a aprender ${nativeLanguageNames[targetLanguage]}. Vamos começar com o básico. Quando você usar o microfone, fale em ${nativeLanguageNames[targetLanguage]}, não em português. Você está pronto?`;
             } else {
-                greeting = `Hello! Welcome to ${lesson.title}. I'm your AI language tutor, and I'll help you learn ${targetLanguage}. Let's start with the basics. Are you ready?`;
+                greeting = `Hello! Welcome to ${lesson.title}. I'm your AI language tutor, and I'll help you learn ${targetLanguage}. Let's start with the basics. When you use the microphone, speak in ${targetLanguage}, not English. Are you ready?`;
             }
             
             await addAIMessage(greeting);
@@ -2479,104 +2487,97 @@
             const nativeLanguage = document.getElementById('nativeLanguage').value;
             const lessonContext = currentLesson.title;
             
+            // Hugging Face API Configuration
+            const HF_API_KEY = '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';
+            const HF_MODEL = 'mistralai/Mixtral-8x7B-Instruct-v0.1'; // Free, powerful model
+            
             // Build instruction based on native language
             let instructionPrompt = '';
             if (nativeLanguage === 'Spanish') {
-                instructionPrompt = `Eres un tutor de idiomas amigable y alentador enseñando ${targetLanguage} a un hablante nativo de español. Lección actual: ${lessonContext}.
-
-El estudiante dijo: "${userMessage}"
-
-Responde como un tutor paciente EN ESPAÑOL, pero enseñando ${targetLanguage}:
-1. Si están aprendiendo o practicando, proporciona retroalimentación y ánimo EN ESPAÑOL
-2. Enséñales vocabulario y frases relevantes en ${targetLanguage} con traducciones al español
-3. Corrige cualquier error con amabilidad y explica EN ESPAÑOL
-4. Haz preguntas de seguimiento para practicar EN ESPAÑOL
-5. Mantén las respuestas concisas (2-4 frases)
-6. Mezcla frases en ${targetLanguage} con traducciones al español
-7. Después de 3-4 intercambios, sugiere que están listos para ejercicios`;
-            } else if (nativeLanguage === 'French') {
-                instructionPrompt = `Vous êtes un tuteur de langues amical et encourageant enseignant ${targetLanguage} à un locuteur natif français. Leçon actuelle: ${lessonContext}.
-
-L'étudiant a dit: "${userMessage}"
-
-Répondez comme un tuteur patient EN FRANÇAIS, mais en enseignant ${targetLanguage}:
-1. S'ils apprennent ou pratiquent, donnez des retours et des encouragements EN FRANÇAIS
-2. Enseignez-leur du vocabulaire et des phrases pertinentes en ${targetLanguage} avec des traductions en français
-3. Corrigez doucement les erreurs et expliquez EN FRANÇAIS
-4. Posez des questions de suivi pour pratiquer EN FRANÇAIS
-5. Gardez les réponses concises (2-4 phrases)
-6. Mélangez des phrases en ${targetLanguage} avec des traductions en français
-7. Après 3-4 échanges, suggérez qu'ils sont prêts pour des exercices`;
+                instructionPrompt = `Eres un tutor de idiomas amigable enseñando ${targetLanguage} a un estudiante español. Lección: ${lessonContext}.\n\nEl estudiante dijo: "${userMessage}"\n\nResponde EN ESPAÑOL brevemente (2-3 frases), enseñando ${targetLanguage}. Incluye una frase en ${targetLanguage} con traducción al español.`;
             } else if (nativeLanguage === 'German') {
-                instructionPrompt = `Du bist ein freundlicher und ermutigender Sprachtutor, der ${targetLanguage} einem deutschen Muttersprachler beibringt. Aktuelle Lektion: ${lessonContext}.
-
-Der Schüler sagte: "${userMessage}"
-
-Antworte als geduldiger Tutor AUF DEUTSCH, aber lehre ${targetLanguage}:
-1. Wenn sie lernen oder üben, gib Feedback und Ermutigung AUF DEUTSCH
-2. Lehre ihnen relevante Vokabeln und Phrasen in ${targetLanguage} mit deutschen Übersetzungen
-3. Korrigiere Fehler sanft und erkläre AUF DEUTSCH
-4. Stelle Folgefragen zum Üben AUF DEUTSCH
-5. Halte Antworten prägnant (2-4 Sätze)
-6. Mische Phrasen in ${targetLanguage} mit deutschen Übersetzungen
-7. Nach 3-4 Austauschen, schlage vor, dass sie für Übungen bereit sind`;
+                instructionPrompt = `Du bist ein freundlicher Sprachtutor und lehrst ${targetLanguage} einem deutschen Schüler. Lektion: ${lessonContext}.\n\nDer Schüler sagte: "${userMessage}"\n\nAntworte AUF DEUTSCH kurz (2-3 Sätze) und lehre ${targetLanguage}. Füge einen Satz auf ${targetLanguage} mit deutscher Übersetzung hinzu.`;
+            } else if (nativeLanguage === 'French') {
+                instructionPrompt = `Vous êtes un tuteur amical enseignant ${targetLanguage} à un étudiant français. Leçon: ${lessonContext}.\n\nL'étudiant a dit: "${userMessage}"\n\nRépondez EN FRANÇAIS brièvement (2-3 phrases), en enseignant ${targetLanguage}. Incluez une phrase en ${targetLanguage} avec traduction française.`;
             } else if (nativeLanguage === 'Portuguese') {
-                instructionPrompt = `Você é um tutor de idiomas amigável e encorajador ensinando ${targetLanguage} a um falante nativo de português. Lição atual: ${lessonContext}.
-
-O aluno disse: "${userMessage}"
-
-Responda como um tutor paciente EM PORTUGUÊS, mas ensinando ${targetLanguage}:
-1. Se estão aprendendo ou praticando, forneça feedback e encorajamento EM PORTUGUÊS
-2. Ensine vocabulário e frases relevantes em ${targetLanguage} com traduções para o português
-3. Corrija erros gentilmente e explique EM PORTUGUÊS
-4. Faça perguntas de acompanhamento para praticar EM PORTUGUÊS
-5. Mantenha as respostas concisas (2-4 frases)
-6. Misture frases em ${targetLanguage} com traduções para o português
-7. Após 3-4 trocas, sugira que estão prontos para exercícios`;
+                instructionPrompt = `Você é um tutor amigável ensinando ${targetLanguage} a um aluno português. Lição: ${lessonContext}.\n\nO aluno disse: "${userMessage}"\n\nResponda EM PORTUGUÊS brevemente (2-3 frases), ensinando ${targetLanguage}. Inclua uma frase em ${targetLanguage} com tradução portuguesa.`;
             } else {
-                instructionPrompt = `You are a friendly and encouraging language tutor teaching ${targetLanguage}. Current lesson: ${lessonContext}.
-
-The student said: "${userMessage}"
-
-Respond as a patient tutor:
-1. If they're learning or practicing, provide feedback and encouragement
-2. Teach them relevant vocabulary and phrases for this lesson topic in ${targetLanguage}
-3. Correct any mistakes gently and explain
-4. Ask follow-up questions to practice
-5. Keep responses concise (2-4 sentences)
-6. Mix in some ${targetLanguage} phrases with English translations
-7. After 3-4 exchanges, suggest they're ready for exercises`;
+                instructionPrompt = `You are a friendly language tutor teaching ${targetLanguage}. Lesson: ${lessonContext}.\n\nStudent said: "${userMessage}"\n\nRespond briefly (2-3 sentences) in English, teaching ${targetLanguage}. Include a phrase in ${targetLanguage} with English translation.`;
             }
             
             try {
-                const response = await fetch("https://api.anthropic.com/v1/messages", {
+                // Check if API key is set
+                if (HF_API_KEY === 'YOUR_HUGGING_FACE_API_KEY') {
+                    messagesDiv.removeChild(loadingDiv);
+                    
+                    // Fallback response when no API key
+                    let aiMessage = '';
+                    if (nativeLanguage === 'Spanish') {
+                        aiMessage = `¡Muy bien! Estás practicando ${targetLanguage}. Para conectar con la IA, añade tu clave API de Hugging Face. Por ahora, practica diciendo frases básicas en ${targetLanguage}. ¿Qué te gustaría aprender?`;
+                    } else if (nativeLanguage === 'German') {
+                        aiMessage = `Sehr gut! Du übst ${targetLanguage}. Um die KI zu verbinden, füge deinen Hugging Face API-Schlüssel hinzu. Übe vorerst grundlegende Phrasen auf ${targetLanguage}. Was möchtest du lernen?`;
+                    } else if (nativeLanguage === 'French') {
+                        aiMessage = `Très bien! Vous pratiquez ${targetLanguage}. Pour connecter l'IA, ajoutez votre clé API Hugging Face. Pour l'instant, pratiquez des phrases de base en ${targetLanguage}. Que voulez-vous apprendre?`;
+                    } else if (nativeLanguage === 'Portuguese') {
+                        aiMessage = `Muito bem! Você está praticando ${targetLanguage}. Para conectar a IA, adicione sua chave API Hugging Face. Por enquanto, pratique frases básicas em ${targetLanguage}. O que você gostaria de aprender?`;
+                    } else {
+                        aiMessage = `Great! You're practicing ${targetLanguage}. To connect the AI, add your Hugging Face API key in the code. For now, practice basic phrases in ${targetLanguage}. What would you like to learn?`;
+                    }
+                    
+                    await addAIMessage(aiMessage);
+                    conversationHistory.push({ role: 'assistant', content: aiMessage });
+                    
+                    if (conversationHistory.length >= 8) {
+                        offerExercises();
+                    }
+                    return;
+                }
+                
+                // Call Hugging Face API
+                const response = await fetch(`https://api-inference.huggingface.co/models/${HF_MODEL}`, {
                     method: "POST",
                     headers: {
+                        "Authorization": `Bearer ${HF_API_KEY}`,
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        model: "claude-sonnet-4-20250514",
-                        max_tokens: 1000,
-                        messages: [
-                            {
-                                role: "user",
-                                content: `${instructionPrompt}
-
-Previous conversation context:
-${conversationHistory.slice(-4).map(msg => `${msg.role}: ${msg.content}`).join('\n')}`
-                            }
-                        ],
+                        inputs: instructionPrompt,
+                        parameters: {
+                            max_new_tokens: 200,
+                            temperature: 0.7,
+                            top_p: 0.9,
+                            return_full_text: false
+                        }
                     })
                 });
 
                 messagesDiv.removeChild(loadingDiv);
                 
                 if (!response.ok) {
+                    if (response.status === 503) {
+                        throw new Error('Model is loading. Please wait 20 seconds and try again.');
+                    }
                     throw new Error('AI response failed');
                 }
 
                 const data = await response.json();
-                const aiMessage = data.content[0].text;
+                
+                // Handle different response formats
+                let aiMessage = '';
+                if (Array.isArray(data) && data[0]?.generated_text) {
+                    aiMessage = data[0].generated_text.trim();
+                } else if (data.generated_text) {
+                    aiMessage = data.generated_text.trim();
+                } else if (data.error) {
+                    throw new Error(data.error);
+                } else {
+                    throw new Error('Unexpected response format');
+                }
+                
+                // Clean up the response (remove instruction prompt if included)
+                if (aiMessage.includes(userMessage)) {
+                    aiMessage = aiMessage.split(userMessage)[1]?.trim() || aiMessage;
+                }
                 
                 await addAIMessage(aiMessage);
                 
@@ -2587,6 +2588,41 @@ ${conversationHistory.slice(-4).map(msg => `${msg.role}: ${msg.content}`).join('
                 
                 // After sufficient conversation, offer exercises
                 if (conversationHistory.length >= 8) {
+                    offerExercises();
+                }
+                
+            } catch (error) {
+                messagesDiv.removeChild(loadingDiv);
+                console.error('AI Error:', error);
+                
+                let errorMessage = '';
+                if (nativeLanguage === 'Spanish') {
+                    errorMessage = error.message.includes('loading') 
+                        ? "El modelo de IA se está cargando. Espera 20 segundos e intenta de nuevo."
+                        : "Tengo problemas de conexión. Inténtalo de nuevo o verifica tu clave API.";
+                } else if (nativeLanguage === 'German') {
+                    errorMessage = error.message.includes('loading')
+                        ? "Das KI-Modell lädt. Warte 20 Sekunden und versuche es erneut."
+                        : "Ich habe Verbindungsprobleme. Versuche es erneut oder überprüfe deinen API-Schlüssel.";
+                } else if (nativeLanguage === 'French') {
+                    errorMessage = error.message.includes('loading')
+                        ? "Le modèle IA se charge. Attendez 20 secondes et réessayez."
+                        : "J'ai des problèmes de connexion. Réessayez ou vérifiez votre clé API.";
+                } else if (nativeLanguage === 'Portuguese') {
+                    errorMessage = error.message.includes('loading')
+                        ? "O modelo de IA está carregando. Aguarde 20 segundos e tente novamente."
+                        : "Estou com problemas de conexão. Tente novamente ou verifique sua chave API.";
+                } else {
+                    errorMessage = error.message.includes('loading')
+                        ? "AI model is loading. Wait 20 seconds and try again."
+                        : "Having connection issues. Try again or check your API key.";
+                }
+                
+                await addAIMessage(errorMessage);
+            }
+        }
+
+        function offerExercises() {
                     setTimeout(() => {
                         let readyMessage = '';
                         if (nativeLanguage === 'Spanish') {
