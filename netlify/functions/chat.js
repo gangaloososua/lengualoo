@@ -51,9 +51,9 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Call Hugging Face
+    // Call Hugging Face - using a simpler model that's always available
     console.log('Calling Hugging Face API...');
-    const response = await fetch('https://router.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1', {
+    const response = await fetch('https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -64,7 +64,6 @@ exports.handler = async (event, context) => {
         parameters: {
           max_new_tokens: 200,
           temperature: 0.7,
-          top_p: 0.9,
           return_full_text: false
         }
       })
@@ -129,8 +128,4 @@ exports.handler = async (event, context) => {
       headers,
       body: JSON.stringify({ 
         error: 'Internal server error',
-        details: error.message 
-      })
-    };
-  }
-};
+        details: error.m
