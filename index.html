@@ -9,7 +9,6 @@
     <title>Lengualoo - Learn Languages with AI</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="favicon.png">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -890,17 +889,44 @@
         var supabase = null;
         var currentUser = null;
         var isSupabaseConfigured = false;
+        var retryCount = 0;
+        var maxRetries = 10;
+
+        // Load Supabase library dynamically
+        function loadSupabaseScript() {
+            return new Promise((resolve, reject) => {
+                // Try jsdelivr CDN first
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js';
+                script.async = true;
+                script.onload = resolve;
+                script.onerror = () => {
+                    // Fallback to unpkg
+                    const fallbackScript = document.createElement('script');
+                    fallbackScript.src = 'https://unpkg.com/@supabase/supabase-js@2.39.3/dist/umd/supabase.js';
+                    fallbackScript.async = true;
+                    fallbackScript.onload = resolve;
+                    fallbackScript.onerror = reject;
+                    document.head.appendChild(fallbackScript);
+                };
+                document.head.appendChild(script);
+            });
+        }
 
         // Initialize Supabase - wait for library to load
         function initializeSupabase() {
+            retryCount++;
+            
             try {
                 if (window.supabase && window.supabase.createClient) {
                     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                     isSupabaseConfigured = true;
                     console.log('✅ Supabase initialized successfully');
+                } else if (retryCount < maxRetries) {
+                    setTimeout(initializeSupabase, 200);
                 } else {
-                    console.warn('⚠️ Supabase library not loaded yet, retrying...');
-                    setTimeout(initializeSupabase, 100);
+                    console.warn('⚠️ Supabase library failed to load. Using local storage mode only.');
+                    isSupabaseConfigured = false;
                 }
             } catch (error) {
                 console.error('❌ Supabase initialization error:', error);
@@ -908,12 +934,16 @@
             }
         }
 
-        // Start initialization when script loads
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeSupabase);
-        } else {
-            initializeSupabase();
-        }
+        // Load script then initialize
+        loadSupabaseScript()
+            .then(() => {
+                console.log('✅ Supabase script loaded');
+                initializeSupabase();
+            })
+            .catch((error) => {
+                console.warn('⚠️ Could not load Supabase library. App will work in local-only mode.', error);
+                isSupabaseConfigured = false;
+            });
 
         // Detect browser/phone language
         function detectUserLanguage() {
