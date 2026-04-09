@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinguaAI - Learn Languages with AI</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Lengualoo - Learn Languages with AI</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -650,7 +655,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🌍 LinguaAI</h1>
+            <h1>🌍 Lengualoo</h1>
             <p>Learn Languages Through AI Conversation</p>
         </div>
 
@@ -764,7 +769,7 @@
     <div id="authModal" class="auth-modal">
         <div class="auth-content">
             <div class="auth-header">
-                <h2>🌍 LinguaAI Account</h2>
+                <h2>🌍 Lengualoo Account</h2>
                 <p>Sync your progress across all devices</p>
             </div>
 
@@ -882,18 +887,20 @@
         const SUPABASE_URL = 'https://edazxgabcwcorkgcoxbu.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkYXp4Z2FiY3djb3JrZ2NveGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1ODE5MDMsImV4cCI6MjA4NjE1NzkwM30.stPdIGnkl1xuHObgEO8p2-cZ0OcB51s992nFhWR4p_w';
         
-        let supabase = null;
-        let currentUser = null;
-        let isSupabaseConfigured = false;
+        var supabase = null;
+        var currentUser = null;
+        var isSupabaseConfigured = false;
 
         // Initialize Supabase
-        try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            isSupabaseConfigured = true;
-            console.log('✅ Supabase initialized successfully');
-        } catch (error) {
-            console.error('❌ Supabase initialization error:', error);
-        }
+        (function() {
+            try {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                isSupabaseConfigured = true;
+                console.log('✅ Supabase initialized successfully');
+            } catch (error) {
+                console.error('❌ Supabase initialization error:', error);
+            }
+        })();
 
         // Detect browser/phone language
         function detectUserLanguage() {
