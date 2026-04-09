@@ -891,16 +891,29 @@
         var currentUser = null;
         var isSupabaseConfigured = false;
 
-        // Initialize Supabase
-        (function() {
+        // Initialize Supabase - wait for library to load
+        function initializeSupabase() {
             try {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                isSupabaseConfigured = true;
-                console.log('✅ Supabase initialized successfully');
+                if (window.supabase && window.supabase.createClient) {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    isSupabaseConfigured = true;
+                    console.log('✅ Supabase initialized successfully');
+                } else {
+                    console.warn('⚠️ Supabase library not loaded yet, retrying...');
+                    setTimeout(initializeSupabase, 100);
+                }
             } catch (error) {
                 console.error('❌ Supabase initialization error:', error);
+                isSupabaseConfigured = false;
             }
-        })();
+        }
+
+        // Start initialization when script loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeSupabase);
+        } else {
+            initializeSupabase();
+        }
 
         // Detect browser/phone language
         function detectUserLanguage() {
