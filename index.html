@@ -2551,6 +2551,32 @@
                 messagesDiv.removeChild(loadingDiv);
                 console.error('AI Error:', error);
                 
+                // Check if this is a local testing scenario (function not deployed)
+                if (error.message.includes('Failed to fetch') || error.toString().includes('404')) {
+                    // LOCAL TESTING FALLBACK - Simple responses
+                    let localResponse = '';
+                    
+                    if (nativeLanguage === 'Spanish') {
+                        localResponse = `¡Muy bien! Estás practicando ${targetLanguage}. Para usar la IA completa, despliega la aplicación en Netlify. Por ahora, intenta decir algo más en ${targetLanguage} y seguiré respondiendo. ¿Qué te gustaría aprender?`;
+                    } else if (nativeLanguage === 'German') {
+                        localResponse = `Sehr gut! Du übst ${targetLanguage}. Um die vollständige KI zu nutzen, stelle die App auf Netlify bereit. Versuche vorerst, etwas mehr auf ${targetLanguage} zu sagen. Was möchtest du lernen?`;
+                    } else if (nativeLanguage === 'French') {
+                        localResponse = `Très bien! Vous pratiquez ${targetLanguage}. Pour utiliser l'IA complète, déployez l'application sur Netlify. Pour l'instant, essayez de dire quelque chose en ${targetLanguage}. Que voulez-vous apprendre?`;
+                    } else if (nativeLanguage === 'Portuguese') {
+                        localResponse = `Muito bem! Você está praticando ${targetLanguage}. Para usar a IA completa, implante o aplicativo no Netlify. Por enquanto, tente dizer algo em ${targetLanguage}. O que você gostaria de aprender?`;
+                    } else {
+                        localResponse = `Great! You're practicing ${targetLanguage}. To use the full AI, deploy the app to Netlify. For now, keep practicing basic phrases. What would you like to learn?`;
+                    }
+                    
+                    await addAIMessage(localResponse);
+                    conversationHistory.push({ role: 'assistant', content: localResponse });
+                    
+                    if (conversationHistory.length >= 8) {
+                        offerExercises();
+                    }
+                    return;
+                }
+                
                 let errorMessage = '';
                 if (nativeLanguage === 'Spanish') {
                     errorMessage = error.message.includes('loading') 
