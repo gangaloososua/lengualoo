@@ -2487,10 +2487,6 @@
             const nativeLanguage = document.getElementById('nativeLanguage').value;
             const lessonContext = currentLesson.title;
             
-            // Hugging Face API Configuration
-            const HF_API_KEY = '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';
-            const HF_MODEL = 'mistralai/Mixtral-8x7B-Instruct-v0.1'; // Free, powerful model
-            
             // Build instruction based on native language
             let instructionPrompt = '';
             if (nativeLanguage === 'Spanish') {
@@ -2506,84 +2502,44 @@
             }
             
             try {
-                // Check if API key is set
-                if (HF_API_KEY === 'YOUR_HUGGING_FACE_API_KEY') {
-                    messagesDiv.removeChild(loadingDiv);
-                    
-                    // Fallback response when no API key
-                    let aiMessage = '';
-                    if (nativeLanguage === 'Spanish') {
-                        aiMessage = `¡Muy bien! Estás practicando ${targetLanguage}. Para conectar con la IA, añade tu clave API de Hugging Face. Por ahora, practica diciendo frases básicas en ${targetLanguage}. ¿Qué te gustaría aprender?`;
-                    } else if (nativeLanguage === 'German') {
-                        aiMessage = `Sehr gut! Du übst ${targetLanguage}. Um die KI zu verbinden, füge deinen Hugging Face API-Schlüssel hinzu. Übe vorerst grundlegende Phrasen auf ${targetLanguage}. Was möchtest du lernen?`;
-                    } else if (nativeLanguage === 'French') {
-                        aiMessage = `Très bien! Vous pratiquez ${targetLanguage}. Pour connecter l'IA, ajoutez votre clé API Hugging Face. Pour l'instant, pratiquez des phrases de base en ${targetLanguage}. Que voulez-vous apprendre?`;
-                    } else if (nativeLanguage === 'Portuguese') {
-                        aiMessage = `Muito bem! Você está praticando ${targetLanguage}. Para conectar a IA, adicione sua chave API Hugging Face. Por enquanto, pratique frases básicas em ${targetLanguage}. O que você gostaria de aprender?`;
-                    } else {
-                        aiMessage = `Great! You're practicing ${targetLanguage}. To connect the AI, add your Hugging Face API key in the code. For now, practice basic phrases in ${targetLanguage}. What would you like to learn?`;
-                    }
-                    
-                    await addAIMessage(aiMessage);
-                    conversationHistory.push({ role: 'assistant', content: aiMessage });
-                    
-                    if (conversationHistory.length >= 8) {
-                        offerExercises();
-                    }
-                    return;
-                }
-                
-                // Call Hugging Face API
-                const response = await fetch(`https://api-inference.huggingface.co/models/${HF_MODEL}`, {
-                    method: "POST",
+                // Call secure Netlify Function (API key is hidden on server!)
+                const response = await fetch('/.netlify/functions/chat', {
+                    method: 'POST',
                     headers: {
-                        "Authorization": `Bearer ${HF_API_KEY}`,
-                        "Content-Type": "application/json",
+                        'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        inputs: instructionPrompt,
-                        parameters: {
-                            max_new_tokens: 200,
-                            temperature: 0.7,
-                            top_p: 0.9,
-                            return_full_text: false
-                        }
+                        prompt: instructionPrompt,
+                        targetLanguage: targetLanguage,
+                        nativeLanguage: nativeLanguage,
+                        lessonContext: lessonContext
                     })
                 });
 
                 messagesDiv.removeChild(loadingDiv);
                 
                 if (!response.ok) {
-                    if (response.status === 503) {
+                    const errorData = await response.json();
+                    if (errorData.loading) {
                         throw new Error('Model is loading. Please wait 20 seconds and try again.');
                     }
                     throw new Error('AI response failed');
                 }
 
                 const data = await response.json();
+                const aiMessage = data.message.trim();
                 
-                // Handle different response formats
-                let aiMessage = '';
-                if (Array.isArray(data) && data[0]?.generated_text) {
-                    aiMessage = data[0].generated_text.trim();
-                } else if (data.generated_text) {
-                    aiMessage = data.generated_text.trim();
-                } else if (data.error) {
-                    throw new Error(data.error);
-                } else {
-                    throw new Error('Unexpected response format');
-                }
-                
-                // Clean up the response (remove instruction prompt if included)
+                // Clean up the response if needed
+                let cleanMessage = aiMessage;
                 if (aiMessage.includes(userMessage)) {
-                    aiMessage = aiMessage.split(userMessage)[1]?.trim() || aiMessage;
+                    cleanMessage = aiMessage.split(userMessage)[1]?.trim() || aiMessage;
                 }
                 
-                await addAIMessage(aiMessage);
+                await addAIMessage(cleanMessage);
                 
                 conversationHistory.push({
                     role: 'assistant',
-                    content: aiMessage
+                    content: cleanMessage
                 });
                 
                 // After sufficient conversation, offer exercises
@@ -2599,23 +2555,23 @@
                 if (nativeLanguage === 'Spanish') {
                     errorMessage = error.message.includes('loading') 
                         ? "El modelo de IA se está cargando. Espera 20 segundos e intenta de nuevo."
-                        : "Tengo problemas de conexión. Inténtalo de nuevo o verifica tu clave API.";
+                        : "Tengo problemas de conexión. Inténtalo de nuevo.";
                 } else if (nativeLanguage === 'German') {
                     errorMessage = error.message.includes('loading')
                         ? "Das KI-Modell lädt. Warte 20 Sekunden und versuche es erneut."
-                        : "Ich habe Verbindungsprobleme. Versuche es erneut oder überprüfe deinen API-Schlüssel.";
+                        : "Ich habe Verbindungsprobleme. Versuche es erneut.";
                 } else if (nativeLanguage === 'French') {
                     errorMessage = error.message.includes('loading')
                         ? "Le modèle IA se charge. Attendez 20 secondes et réessayez."
-                        : "J'ai des problèmes de connexion. Réessayez ou vérifiez votre clé API.";
+                        : "J'ai des problèmes de connexion. Réessayez.";
                 } else if (nativeLanguage === 'Portuguese') {
                     errorMessage = error.message.includes('loading')
                         ? "O modelo de IA está carregando. Aguarde 20 segundos e tente novamente."
-                        : "Estou com problemas de conexão. Tente novamente ou verifique sua chave API.";
+                        : "Estou com problemas de conexão. Tente novamente.";
                 } else {
                     errorMessage = error.message.includes('loading')
                         ? "AI model is loading. Wait 20 seconds and try again."
-                        : "Having connection issues. Try again or check your API key.";
+                        : "Having connection issues. Try again.";
                 }
                 
                 await addAIMessage(errorMessage);
