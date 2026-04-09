@@ -51,7 +51,7 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Call Hugging Face - using a simpler model that's always available
+    // Call Hugging Face with Mistral-7B model
     console.log('Calling Hugging Face API...');
     const response = await fetch('https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2', {
       method: 'POST',
@@ -128,4 +128,8 @@ exports.handler = async (event, context) => {
       headers,
       body: JSON.stringify({ 
         error: 'Internal server error',
-        details: error.m
+        details: error.message 
+      })
+    };
+  }
+};
