@@ -2579,44 +2579,30 @@
         }
 
         function offerExercises() {
-                    setTimeout(() => {
-                        let readyMessage = '';
-                        if (nativeLanguage === 'Spanish') {
-                            readyMessage = "¡Gran práctica! ¿Listo para probar tus conocimientos con algunos ejercicios?";
-                        } else if (nativeLanguage === 'French') {
-                            readyMessage = "Excellente pratique! Prêt à tester vos connaissances avec des exercices?";
-                        } else if (nativeLanguage === 'German') {
-                            readyMessage = "Tolle Übung! Bereit, dein Wissen mit einigen Übungen zu testen?";
-                        } else if (nativeLanguage === 'Portuguese') {
-                            readyMessage = "Ótima prática! Pronto para testar seus conhecimentos com alguns exercícios?";
-                        } else {
-                            readyMessage = "Great practice! Ready to test your knowledge with some exercises?";
-                        }
-                        addSystemMessage(readyMessage);
-                        document.getElementById('completeLessonBtn').style.display = 'inline-block';
-                        document.getElementById('completeLessonBtn').textContent = nativeLanguage === 'Spanish' ? 'Comenzar Ejercicios' : 
-                            nativeLanguage === 'French' ? 'Commencer les Exercices' :
-                            nativeLanguage === 'German' ? 'Übungen Starten' :
-                            nativeLanguage === 'Portuguese' ? 'Iniciar Exercícios' : 'Start Exercises';
-                        document.getElementById('completeLessonBtn').onclick = startExercises;
-                    }, 2000);
-                }
-                
-            } catch (error) {
-                messagesDiv.removeChild(loadingDiv);
-                let errorMessage = "I'm having trouble connecting right now. Let's continue practicing! Try telling me more about yourself.";
+            const nativeLanguage = document.getElementById('nativeLanguage').value;
+            setTimeout(() => {
+                let readyMessage = '';
                 if (nativeLanguage === 'Spanish') {
-                    errorMessage = "Tengo problemas de conexión ahora. ¡Sigamos practicando! Intenta contarme más sobre ti.";
+                    readyMessage = "¡Gran práctica! ¿Listo para probar tus conocimientos con algunos ejercicios?";
                 } else if (nativeLanguage === 'French') {
-                    errorMessage = "J'ai des problèmes de connexion maintenant. Continuons à pratiquer! Essayez de m'en dire plus sur vous.";
+                    readyMessage = "Excellente pratique! Prêt à tester vos connaissances avec des exercices?";
                 } else if (nativeLanguage === 'German') {
-                    errorMessage = "Ich habe gerade Verbindungsprobleme. Lass uns weiter üben! Versuche mir mehr über dich zu erzählen.";
+                    readyMessage = "Tolle Übung! Bereit, dein Wissen mit einigen Übungen zu testen?";
                 } else if (nativeLanguage === 'Portuguese') {
-                    errorMessage = "Estou tendo problemas de conexão agora. Vamos continuar praticando! Tente me contar mais sobre você.";
+                    readyMessage = "Ótima prática! Pronto para testar seus conhecimentos com alguns exercícios?";
+                } else {
+                    readyMessage = "Great practice! Ready to test your knowledge with some exercises?";
                 }
-                await addAIMessage(errorMessage);
-            }
+                addSystemMessage(readyMessage);
+                document.getElementById('completeLessonBtn').style.display = 'inline-block';
+                document.getElementById('completeLessonBtn').textContent = nativeLanguage === 'Spanish' ? 'Comenzar Ejercicios' : 
+                    nativeLanguage === 'French' ? 'Commencer les Exercices' :
+                    nativeLanguage === 'German' ? 'Übungen Starten' :
+                    nativeLanguage === 'Portuguese' ? 'Iniciar Exercícios' : 'Start Exercises';
+                document.getElementById('completeLessonBtn').onclick = startExercises;
+            }, 2000);
         }
+
 
         async function startExercises() {
             document.getElementById('chatContainer').style.display = 'none';
